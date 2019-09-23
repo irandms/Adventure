@@ -11,19 +11,19 @@
 #include <sys/types.h>
 
 //Implementation of the Fisher-Yates shuffle algorithm, taken from https://benpfaff.org/writings/clc/shuffle.html
-void shuffle(char *array, size_t n)
+void shuffle(char *array[], size_t length)
 {
-    size_t i;
-    size_t length = sizeof(array) / sizeof(array[0]);
+    //size_t i;
+    //size_t length = sizeof(array) / sizeof(array[0]);
 
-    for (i = 0; i < length - 1; i++) {
-        size_t j = i + rand() / (RAND_MAX / (length - i) + 1);
-        char temp = array[j];
+    for (size_t i = 0; i < length; i++) {
+        size_t j = rand() % (i + 1);
+        char *temp = array[j];
+        // strcpy(temp, array[j]);
         array[j] = array[i];
         array[i] = temp;
     }
 }
-
 
 int main() 
 {
@@ -34,15 +34,15 @@ int main()
     sprintf(pid_str, "rooms.%d", pid);
     mkdir(pid_str, 0700); //Make room directory, with read, write, and execute power
 
-    char *rooms[10] = {"Kitten","Gargoyle","Lizard","Facebook","Computer","Witchy","Vacuum","Wonder","Liquor","Pride"}; 
+    char *rooms[] = {"Kitten","Gargoyle","Lizard","Facebook","Computer","Witchy","Vacuum","Wonder","Liquor","Pride"}; 
      
-    //for(int loop = 0; loop < 10; loop++)
-    //  printf("%s ", rooms[loop]);
+    for(int loop = 0; loop < 10; loop++)
+      printf("%s \n", rooms[loop]);
     
-    shuffle(*rooms, 10);  
+    shuffle(rooms, 10);  
 
-    //for(int loop = 0; loop < 10; loop++)
-    //  printf("%s ", rooms[loop]);
+    for(int loop = 0; loop < 10; loop++)
+      printf("%s \n", rooms[loop]);
 
     return 0;
 }
