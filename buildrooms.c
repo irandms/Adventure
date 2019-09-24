@@ -33,16 +33,33 @@ int main()
     int pid = getpid();
     sprintf(pid_str, "rooms.%d", pid);
     mkdir(pid_str, 0700); //Make room directory, with read, write, and execute power
+    
+    chdir(pid_str); 
 
-    char *rooms[] = {"Kitten","Gargoyle","Lizard","Facebook","Computer","Witchy","Vacuum","Wonder","Liquor","Pride"}; 
-     
-    for(int loop = 0; loop < 10; loop++)
-      printf("%s \n", rooms[loop]);
+    char *rooms[] = {"Kitten","Gargoyle","Lizard","Facebook","Computer","Witchy","Vacuum","Wonder","Dungeon","Bouncy"}; 
     
     shuffle(rooms, 10);  
 
-    for(int loop = 0; loop < 10; loop++)
-      printf("%s \n", rooms[loop]);
+    for (size_t h = 0; h < 7; h++) {
+        
+        FILE *fPtr; 
+        char roomType[20];
+        char room_name[30];
+
+        sprintf(room_name, "%s_room", rooms[h]);
+
+        fPtr = fopen(room_name, "w"); //Create a file for the first seven rooms
+
+        if (h == 0)
+            strcpy(roomType, "START_ROOM");
+        else if (h == 1)
+            strcpy(roomType, "END_ROOM");
+        else
+            strcpy(roomType, "MID_ROOM");
+
+        fputs(roomType, fPtr);
+        fclose(fPtr);
+    } 
 
     return 0;
 }
