@@ -11,18 +11,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-enum RoomType {START_ROOM, END_ROOM, MID_ROOM};
-
-struct Room {
-    int position; 
-    char name[9];
-    enum RoomType roomType;
-    int connections[6];
-};
-
 bool connectionMap[7][7] = {0}; //An array that stores all of the room connections  
-
-struct Room rooms[7];
 
 //Implementation of the Fisher-Yates shuffle algorithm, taken from https://benpfaff.org/writings/clc/shuffle.html
 void shuffle(char *array[], size_t length)
@@ -117,8 +106,3 @@ int main()
     return 0;
 
 }
-/*
-        fclose(fPtr);
-    } 
-
-    return 0; */
