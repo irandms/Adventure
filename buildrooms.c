@@ -7,8 +7,18 @@
 #include <string.h>
 #include <search.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+enum RoomType {START_ROOM, END_ROOM, MID_ROOM};
+
+struct Room {
+    int position; 
+    char name[9];
+    enum RoomType roomType;
+    int connections[6];
+};
 
 //Implementation of the Fisher-Yates shuffle algorithm, taken from https://benpfaff.org/writings/clc/shuffle.html
 void shuffle(char *array[], size_t length)
@@ -25,9 +35,49 @@ void shuffle(char *array[], size_t length)
     }
 }
 
+void initConnections(bool connectionMap[7][7], int num_rows) {
+
+    for (int s = 0; s < num_rows; s++) {
+        for (int o = 0; o < 3; o++) {
+            int randPlace = rand() % (num_rows);
+            while (randPlace == s) 
+                //If attempting to draw a connection between a node and itself or a connection that already exists, reroll
+                randPlace = rand() % (num_rows);
+            
+            connectionMap[s][randPlace] = connectionMap[randPlace][s] = true;
+        }
+    }
+    for (int p = 0; p < num_rows; p++) { 
+        for (int h = 0; h < num_rows; h++) {
+            printf("%d ", connectionMap[p][h]);
+        } 
+        
+        printf("\n");
+    }
+}
+
+void createFiles(char *rooms, size_t num_of_rooms) 
+{
+    for (size_t h = 0; h < 7; h++) {
+        
+        char roomType[20];
+        char roomName[30];
+
+        sprintf(roomName, "%s_room", rooms[h]);
+
+        FILE *fPtr = fopen(roomName, "w"); //Create a file for the first seven rooms
+
+        fprintf(fPtr, "ROOM NAME: %s \n", roomName);
+
+        fclose(fPtr);
+    }
+}
+
+
 int main() 
 {
     srand(time(NULL));
+
     char pid_str[80];
 
     int pid = getpid();
@@ -36,20 +86,18 @@ int main()
     
     chdir(pid_str); 
 
-    char *rooms[] = {"Kitten","Gargoyle","Lizard","Facebook","Computer","Witchy","Vacuum","Wonder","Dungeon","Bouncy"}; 
+    char *rooms[] = {"Kitten","Gargoyle","Lizard","Facebook","Computer","Witchy","Vacuum","Wonder","Liquor","Pride"}; 
+    
+    bool connectionMap[7][7] = {0}; //An array that stores all of the room connections 
     
     shuffle(rooms, 10);  
 
-    for (size_t h = 0; h < 7; h++) {
-        
-        FILE *fPtr; 
-        char roomType[20];
-        char room_name[30];
+    initConnections(connectionMap, 7);
 
-        sprintf(room_name, "%s_room", rooms[h]);
+    return 0;
 
-        fPtr = fopen(room_name, "w"); //Create a file for the first seven rooms
-
+}
+/*
         if (h == 0)
             strcpy(roomType, "START_ROOM");
         else if (h == 1)
@@ -57,9 +105,8 @@ int main()
         else
             strcpy(roomType, "MID_ROOM");
 
-        fputs(roomType, fPtr);
+        fprintf(fPtr, "ROOM TYPE: %s", roomType);
         fclose(fPtr);
     } 
 
-    return 0;
-}
+    return 0; */
