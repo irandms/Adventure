@@ -90,7 +90,7 @@ int main()
     char pid_str[80];
 
     int pid = getpid();
-    sprintf(pid_str, "rooms.%d", pid);
+    sprintf(pid_str, "harpekar.rooms.%d", pid);
     mkdir(pid_str, 0700); //Make room directory, with read, write, and execute power
     
     chdir(pid_str); 
