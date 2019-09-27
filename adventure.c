@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 struct Room {
     char* name; 
@@ -17,8 +18,17 @@ char * findCurrentDirectory() {
 
     DIR * dr = opendir(".");
 
-    char workingDir[20] = "";
+    char * workingDir = "";
     time_t moddedTime;
+
+    printf("working dir at the start is %s \n", workingDir);
+
+    bool what = (workingDir == "");
+
+    if (what == true)
+        printf("workingdir is quotes");
+    else
+        printf("workingdir is not quotes");
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
     
@@ -26,9 +36,11 @@ char * findCurrentDirectory() {
 
             stat(dir_entry->d_name, &statbuf);
 
-            if (difftime(statbuf.st_mtim.tv_sec, moddedTime) > 0) { // If the current directory was modified after the current workingDir
-                strcpy(workingDir, dir_entry->d_name);
-                //workingDir = dir_entry->d_name;
+            // If the current directory was modified after the current workingDir
+            // Or if this is the first rooms dir encountered. 
+            if ((difftime(statbuf.st_mtim.tv_sec, moddedTime) > 0) || (workingDir == "")) { 
+                workingDir = dir_entry->d_name;
+                printf("workingdir is %s \n", workingDir);
 
                 moddedTime = statbuf.st_mtim.tv_sec;
             }
@@ -37,18 +49,38 @@ char * findCurrentDirectory() {
 
     closedir(dr);
 
-    char* dirPointer = (char*) workingDir;
-    return dirPointer;
-
+    //char* dirPointer = (char*) workingDir;
+    printf("Returning %s \n", workingDir);
+    return workingDir;
 } 
 
-int main(){
+void readRooms (char * dirName) {
+    
+    struct dirent * dir_entry; 
 
-    char * workingDir;
+    printf("Dir name is %s \n", dirName);
+
+    DIR *dr = opendir(dirName);
+
+    while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
+        
+        printf("name of file is %s \n", dir_entry->d_name);
+
+    }
+}
+
+int main(){    
     
-    workingDir = findCurrentDirectory(); //
-    
-    //printf("working dir is %s \n", workingDir);
+    struct Room * rooms[7]; 
+    char * workingDir = "";
+
+    printf("Entering findcurrent \n");
+
+    workingDir = findCurrentDirectory(); //Find the most recent directory created by buildrooms.c
+   
+    printf("Working dir now is %s \n", workingDir);
+
+    readRooms(workingDir); //read all Room files into the rooms array
 
     return 0;
 }
