@@ -83,7 +83,7 @@ void createFiles(char *rooms[],  size_t num_of_rooms)
 
 int main() 
 {
-    srand(time(NULL));
+    srand(time(NULL)); //Seed randomization
 
     const int room_num = 7;
 
