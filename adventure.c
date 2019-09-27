@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 struct Room {
     char* name; 
@@ -26,9 +27,9 @@ char * findCurrentDirectory() {
     bool what = (workingDir == "");
 
     if (what == true)
-        printf("workingdir is quotes");
+        printf("workingdir is quotes \n");
     else
-        printf("workingdir is not quotes");
+        printf("workingdir is not quotes \n");
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
     
@@ -40,7 +41,7 @@ char * findCurrentDirectory() {
             // Or if this is the first rooms dir encountered. 
             if ((difftime(statbuf.st_mtim.tv_sec, moddedTime) > 0) || (workingDir == "")) { 
                 workingDir = dir_entry->d_name;
-                printf("workingdir is %s \n", workingDir);
+                printf("inside if, workingdir is %s \n", workingDir);
 
                 moddedTime = statbuf.st_mtim.tv_sec;
             }
@@ -54,24 +55,39 @@ char * findCurrentDirectory() {
     return workingDir;
 } 
 
-void readRooms (char * dirName) {
+void readRooms (char * dirName, struct Room * rooms) {
     
     struct dirent * dir_entry; 
 
-    printf("Dir name is %s \n", dirName);
+    chdir(dirName);
 
-    DIR *dr = opendir(dirName);
+    DIR *dr = opendir(".");
+
+    FILE *fptr;
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
         
         printf("name of file is %s \n", dir_entry->d_name);
 
+        //char * fileName = dir_entry->d_name;
+
+        fptr = fopen(dir_entry->d_name, "r");
+
+        char line = fgetc(fptr);
+
+        while (line != EOF) {
+            printf("%c", line);
+
+            line = fgetc(fptr);
+
+
+        }
     }
 }
 
 int main(){    
     
-    struct Room * rooms[7]; 
+    struct Room rooms[7]; 
     char * workingDir = "";
 
     printf("Entering findcurrent \n");
@@ -80,7 +96,7 @@ int main(){
    
     printf("Working dir now is %s \n", workingDir);
 
-    readRooms(workingDir); //read all Room files into the rooms array
+    readRooms(workingDir, rooms); //read all Room files into the rooms array
 
     return 0;
 }
