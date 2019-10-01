@@ -9,7 +9,7 @@
 
 struct Room {
     char* name; 
-    int connections[6];
+    char* rooms[];
 };
 
 char * findCurrentDirectory() { 
@@ -77,10 +77,22 @@ void readRooms (char * dirName, struct Room * rooms) {
 
         while (line != EOF) {
             printf("%c", line);
+            /*
+            char * line_ptr = &line;
+
+            if (strstr(line_ptr, "NAME") != NULL) {
+
+            }
+
+            else if (strstr(line_ptr, "CONNECTION") != NULL)  {
+
+            }
+
+            else if (strstr(line_ptr, "TYPE") != NULL) {
+
+            } */
 
             line = fgetc(fptr);
-
-
         }
     }
 }
