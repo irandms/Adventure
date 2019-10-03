@@ -63,7 +63,7 @@ void createFiles(char *rooms[],  size_t num_of_rooms)
 
         FILE *fPtr = fopen(roomName, "w"); //Create a file for the first seven rooms
 
-        fprintf(fPtr, "ROOM NAME: %s \n", roomName);
+        fprintf(fPtr, "ROOM NAME: %s \n", rooms[h]);
 
         int num_of_conn = 1;
 
