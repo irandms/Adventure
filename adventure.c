@@ -88,19 +88,24 @@ void readRooms (char * dirName, struct Room * rooms) {
             //char * line_ptr = &line;
 
             char* token = strtok(line, ":");
-            token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
+            //token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
 
             printf("token is %s \n", token);
 
             if (strstr(line, "NAME") != NULL) {
-                 //rooms[room_num].name = token;
+                token = strtok(NULL, "_");
+
+                rooms[room_num].name = token;
+                printf("Room name set as %s \n", rooms[room_num].name); 
             }
 
             else if (strstr(line, "CONNECTION") != NULL)  {
-            
+             
             }
 
             else if (strstr(line, "TYPE") != NULL) {
+                token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
+                
                 rooms[room_num].type = token;
                 printf("Room type set as %s \n", rooms[room_num].type); 
             }
