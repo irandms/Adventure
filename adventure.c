@@ -9,6 +9,7 @@
 
 struct Room {
     char* name; 
+    char* type;
     char* rooms[];
 };
 
@@ -62,8 +63,11 @@ void readRooms (char * dirName, struct Room * rooms) {
     chdir(dirName);
 
     DIR *dr = opendir(".");
-
     FILE *fptr;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
         
@@ -73,26 +77,35 @@ void readRooms (char * dirName, struct Room * rooms) {
 
         fptr = fopen(dir_entry->d_name, "r");
 
-        char line = fgetc(fptr);
+        int room_num = 0; 
 
-        while (line != EOF) {
-            printf("%c", line);
-            /*
-            char * line_ptr = &line;
+        while ((read = getline(&line, &len, fptr)) != -1)  { //while the end of the file is not reached
+            
+            //printf("Retrieved line of length %zu :\n", read);
 
-            if (strstr(line_ptr, "NAME") != NULL) {
+            printf("%s", line);
 
+            //char * line_ptr = &line;
+
+            char* token = strtok(line, ":");
+            token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
+
+            printf("token is %s \n", token);
+
+            if (strstr(line, "NAME") != NULL) {
+                 //rooms[room_num].name = token;
             }
 
-            else if (strstr(line_ptr, "CONNECTION") != NULL)  {
-
+            else if (strstr(line, "CONNECTION") != NULL)  {
+            
             }
 
-            else if (strstr(line_ptr, "TYPE") != NULL) {
+            else if (strstr(line, "TYPE") != NULL) {
+                rooms[room_num].type = token;
+                printf("Room type set as %s \n", rooms[room_num].type); 
+            }
 
-            } */
-
-            line = fgetc(fptr);
+            room_num++;
         }
     }
 }
