@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -10,7 +11,7 @@
 struct Room {
     char* name; 
     char* type;
-    char* rooms[];
+    char* connections[];
 };
 
 char * findCurrentDirectory() { 
@@ -56,6 +57,27 @@ char * findCurrentDirectory() {
     return workingDir;
 } 
 
+char* parseLine(char * line) {
+
+     char* lineParts[4];
+
+     char* token = strtok(line, " :");
+     //token = strtok(NULL, ": ");
+
+     int linePart = 0;
+
+     while (token != NULL) {
+
+        lineParts[linePart] = token;
+        printf("token is %s \n", lineParts[linePart]);
+
+        token = strtok(NULL, " :");
+        linePart++;
+     }
+
+     return *lineParts;
+}
+
 void readRooms (char * dirName, struct Room * rooms) {
     
     struct dirent * dir_entry; 
@@ -68,6 +90,7 @@ void readRooms (char * dirName, struct Room * rooms) {
     size_t len = 0;
     ssize_t read;
 
+    char* lineParts;
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
         
@@ -77,40 +100,83 @@ void readRooms (char * dirName, struct Room * rooms) {
 
         fptr = fopen(dir_entry->d_name, "r");
 
-        int room_num = 0; 
+        int roomNum = 0; 
 
         while ((read = getline(&line, &len, fptr)) != -1)  { //while the end of the file is not reached
             
             //printf("Retrieved line of length %zu :\n", read);
 
-            printf("%s", line);
+            printf("%s \n", line);
 
             //char * line_ptr = &line;
 
-            char* token = strtok(line, ":");
-            //token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
+            lineParts = parseLine(line);
 
-            printf("token is %s \n", token);
+            // printf("lineparts[1] is %s \n", &lineParts[5]);
+            
+            if (strcmp(&lineParts[0], "CONNECTION") == 0) {
+                printf("found a connection! \n ");
 
+            }
+
+            else if (strcmp(&lineParts[5], "NAME") == 0) {
+                printf("Room name found \n");
+                rooms[roomNum].name = &lineParts[9];
+                printf("setting room name as %s", rooms[roomNum].name);
+            }
+            
+            else {
+                printf("Room type found \n"); 
+            }
+            
+           /*
             if (strstr(line, "NAME") != NULL) {
-                token = strtok(NULL, "_");
+            //if (token == "NAME") {
+                //token = strtok(line, ": ");
+                //token = strtok(NULL, ": ");
 
                 rooms[room_num].name = token;
                 printf("Room name set as %s \n", rooms[room_num].name); 
             }
 
             else if (strstr(line, "CONNECTION") != NULL)  {
-             
+                //char * conn_token = strtok(token, " :");
+
+                token = strtok(line, " ");
+
+                //printf("conn token is %s \n", conn_token); 
+
+                token = strtok(NULL, ": ");
+                
+                printf("connection name is %s \n", token);
+
+                token = strtok(NULL, ": ");
+
+                //char * conn_token = strtok(line, " :");
+
+                printf("conn number is %s \n", token); 
+ 
+                // token = strtok(NULL, ": ");
+
+                //printf("conn name is %s \n", token); 
+
+                int connection_num = atoi(token) - 1;
+
+                //token = strtok(NULL, ":");
+
+                rooms[room_num].connections[connection_num] = token; 
             }
 
             else if (strstr(line, "TYPE") != NULL) {
+                token = strtok(line, ":");
                 token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
                 
                 rooms[room_num].type = token;
                 printf("Room type set as %s \n", rooms[room_num].type); 
             }
+            */
 
-            room_num++;
+            roomNum++;
         }
     }
 }
