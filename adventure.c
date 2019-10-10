@@ -11,7 +11,7 @@
 struct Room {
     char name[10]; 
     char type[15];
-    char *connections[6];
+    char connections[6][7];
 };
 
 char * findCurrentDirectory() { 
@@ -119,7 +119,7 @@ void readRooms (char * dirName, struct Room *rooms) {
 
                 printf("Adding to connection %d \n", connectNum);
 
-                rooms[roomNum].connections[connectNum] = malloc(strlen(lineParts[2]));
+                //rooms[roomNum].connections[connectNum] = malloc(strlen(lineParts[2]));
 
                 //rooms[roomNum].connections[connectNum] = lineParts[2];
 
@@ -244,14 +244,6 @@ int main(){
     //free(rooms);
 
     printf("Freeing connections \n");
-
-    /*
-    for (int e = 0; e<7; e++) {
-        for (int t = 0; t < 6; t ++) {
-            free(rooms[e].connections[t]);
-        }
-    }
-    */
 
     return 0;
 }
