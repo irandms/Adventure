@@ -9,9 +9,9 @@
 #include <unistd.h>
 
 struct Room {
-    char* name; 
-    char* type;
-    char* connections[];
+    char name[10]; 
+    char type[15];
+    char* connections[6];
 };
 
 char * findCurrentDirectory() { 
@@ -24,15 +24,6 @@ char * findCurrentDirectory() {
     char * workingDir = "";
     time_t moddedTime;
 
-    printf("working dir at the start is %s \n", workingDir);
-
-    bool what = (workingDir == "");
-
-    if (what == true)
-        printf("workingdir is quotes \n");
-    else
-        printf("workingdir is not quotes \n");
-
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
     
         if (strstr(dir_entry->d_name, ".rooms") != NULL) { //if the file is a "rooms" directory
@@ -43,7 +34,6 @@ char * findCurrentDirectory() {
             // Or if this is the first rooms dir encountered. 
             if ((difftime(statbuf.st_mtim.tv_sec, moddedTime) > 0) || (workingDir == "")) { 
                 workingDir = dir_entry->d_name;
-                printf("inside if, workingdir is %s \n", workingDir);
 
                 moddedTime = statbuf.st_mtim.tv_sec;
             }
@@ -57,9 +47,7 @@ char * findCurrentDirectory() {
     return workingDir;
 } 
 
-char* parseLine(char * line) {
-
-     char* lineParts[4];
+void parseLine(char * line, char* lineParts[]) {
 
      char* token = strtok(line, " :");
      //token = strtok(NULL, ": ");
@@ -69,16 +57,16 @@ char* parseLine(char * line) {
      while (token != NULL) {
 
         lineParts[linePart] = token;
-        printf("token is %s \n", lineParts[linePart]);
+        //printf("token is %s \n", lineParts[linePart]);
 
         token = strtok(NULL, " :");
         linePart++;
      }
 
-     return *lineParts;
+     printf("Last linepart is %s \n", lineParts[2]);
 }
 
-void readRooms (char * dirName, struct Room * rooms) {
+void readRooms (char * dirName, struct Room *rooms) {
     
     struct dirent * dir_entry; 
 
@@ -90,7 +78,9 @@ void readRooms (char * dirName, struct Room * rooms) {
     size_t len = 0;
     ssize_t read;
 
-    char* lineParts;
+    char* lineParts[4];
+
+    int roomNum = 0; 
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
         
@@ -98,87 +88,106 @@ void readRooms (char * dirName, struct Room * rooms) {
 
         //char * fileName = dir_entry->d_name;
 
-        fptr = fopen(dir_entry->d_name, "r");
+        if (strstr(dir_entry->d_name, "room") == NULL) { //Skip any non-room file
+            printf("Skipping bad files \n");
+            continue;
+        }
 
-        int roomNum = 0; 
+        fptr = fopen(dir_entry->d_name, "r");
 
         while ((read = getline(&line, &len, fptr)) != -1)  { //while the end of the file is not reached
             
             //printf("Retrieved line of length %zu :\n", read);
 
-            printf("%s \n", line);
+            printf("The room num is %d \n", roomNum);
 
             //char * line_ptr = &line;
 
-            lineParts = parseLine(line);
+            parseLine(line, lineParts);
 
-            // printf("lineparts[1] is %s \n", &lineParts[5]);
+            //printf("lineparts[1] is %s \n", lineParts[1]);
             
-            if (strcmp(&lineParts[0], "CONNECTION") == 0) {
-                printf("found a connection! \n ");
+            if (strcmp(lineParts[0], "CONNECTION") == 0) {
+                //printf("found a connection! \n ");
+                int connectNum = atoi(lineParts[1]) - 1;
+                rooms[roomNum].connections[connectNum] = lineParts[2];
 
+                printf("Setting connection %d to %s \n", connectNum, rooms[roomNum].connections[connectNum]);
             }
 
-            else if (strcmp(&lineParts[5], "NAME") == 0) {
-                printf("Room name found \n");
-                rooms[roomNum].name = &lineParts[9];
-                printf("setting room name as %s", rooms[roomNum].name);
+            else if (strcmp(lineParts[1], "TYPE") == 0) {
+                printf("Room type found \n");
+                strcpy(rooms[roomNum].type, lineParts[2]);
+                printf("setting room type as %s \n", rooms[roomNum].type);
             }
             
             else {
-                printf("Room type found \n"); 
-            }
-            
-           /*
-            if (strstr(line, "NAME") != NULL) {
-            //if (token == "NAME") {
-                //token = strtok(line, ": ");
-                //token = strtok(NULL, ": ");
+                printf("Room name found \n");
+                //char* roomName = lineParts[2];
 
-                rooms[room_num].name = token;
-                printf("Room name set as %s \n", rooms[room_num].name); 
+                printf("Room name found to be %s \n", lineParts[2]);
+
+                strcpy(rooms[roomNum].name, lineParts[2]);
+                printf("setting room name as %s \n", rooms[roomNum].name); 
             }
 
-            else if (strstr(line, "CONNECTION") != NULL)  {
-                //char * conn_token = strtok(token, " :");
-
-                token = strtok(line, " ");
-
-                //printf("conn token is %s \n", conn_token); 
-
-                token = strtok(NULL, ": ");
-                
-                printf("connection name is %s \n", token);
-
-                token = strtok(NULL, ": ");
-
-                //char * conn_token = strtok(line, " :");
-
-                printf("conn number is %s \n", token); 
- 
-                // token = strtok(NULL, ": ");
-
-                //printf("conn name is %s \n", token); 
-
-                int connection_num = atoi(token) - 1;
-
-                //token = strtok(NULL, ":");
-
-                rooms[room_num].connections[connection_num] = token; 
-            }
-
-            else if (strstr(line, "TYPE") != NULL) {
-                token = strtok(line, ":");
-                token = strtok(NULL, ": "); //Call strtok a second time to get the value on the other side of the colon
-                
-                rooms[room_num].type = token;
-                printf("Room type set as %s \n", rooms[room_num].type); 
-            }
-            */
-
-            roomNum++;
         }
+
+        roomNum++;
     }
+
+    printf("Within readRooms, second room name is %s \n", rooms[1].name);
+}
+
+void printConnections(struct Room rooms[], int roomPos) {
+    
+}
+
+int findRoom(struct Room rooms[], char* roomToFind, char* charType) { //Takes in the room characteristic type and value and returns its position in the rooms struct
+
+    printf("Finding a %s that matches %s \n", charType, roomToFind); 
+
+    for (int i = 0; i < 7; i++) { 
+        char* testRoom;
+        printf("Currently on room %s \n", rooms[i].name);
+
+        if (charType == "type") {
+            testRoom = rooms[i].type;
+            printf("Currently Testing %s \n", testRoom);
+        }
+        else if (charType == "name") {
+            testRoom = rooms[i].name;
+        }
+
+        printf("Testing if %s matches %s \n", testRoom, roomToFind);
+
+        if (testRoom == roomToFind) 
+            printf("Found! \n");
+            return i;       
+    } 
+
+    printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN. \n");
+}
+
+int goToRoom(struct Room rooms[], char* room, char* charType, int stepNum) {
+
+    int roomPos = findRoom(rooms, room, charType);
+
+    printf("CURRENT LOCATION: %s \n", rooms[roomPos].name);
+    printf("POSSIBLE CONNECTIONS:");
+
+    printConnections(rooms, roomPos);
+
+    printf("WHERE TO? >");
+}
+
+void playGame(struct Room  rooms[]) {
+
+    printf("a random room name is %s \n", rooms[1].name);
+
+    int numSteps = goToRoom(rooms, "START_ROOM", "type", 0);
+    
+    printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS! \n YOU TOOK %d STEPS. \n", numSteps);    
 }
 
 int main(){    
@@ -186,13 +195,15 @@ int main(){
     struct Room rooms[7]; 
     char * workingDir = "";
 
-    printf("Entering findcurrent \n");
+    //printf("Entering findcurrent \n");
 
     workingDir = findCurrentDirectory(); //Find the most recent directory created by buildrooms.c
    
-    printf("Working dir now is %s \n", workingDir);
+    //printf("Working dir now is %s \n", workingDir);
 
     readRooms(workingDir, rooms); //read all Room files into the rooms array
+
+    playGame(rooms);
 
     return 0;
 }
