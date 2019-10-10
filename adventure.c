@@ -123,7 +123,7 @@ void readRooms (char * dirName, struct Room *rooms) {
 
                 //rooms[roomNum].connections[connectNum] = lineParts[2];
 
-                strncpy(rooms[roomNum].connections[connectNum], lineParts[2], strlen(lineParts[2]));
+                strncpy(rooms[roomNum].connections[connectNum], lineParts[2], strlen(lineParts[2]-1));
 
                 printf("Setting connection %d to %s \n", connectNum, rooms[roomNum].connections[connectNum]);
             }
