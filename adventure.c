@@ -11,7 +11,8 @@
 struct Room {
     char name[10]; 
     char type[15];
-    char connections[6][7];
+    char connections[6][10];
+    int numConns;
 };
 
 char * findCurrentDirectory() { 
@@ -63,7 +64,7 @@ void parseLine(char * line, char* lineParts[]) {
         linePart++;
      }
 
-     printf("Last linepart is %s \n", lineParts[2]);
+     //printf("Last linepart is %s \n", lineParts[2]);
 }
 
 void readRooms (char * dirName, struct Room *rooms) {
@@ -88,12 +89,12 @@ void readRooms (char * dirName, struct Room *rooms) {
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
         
-        printf("name of file is %s \n", dir_entry->d_name);
+        //printf("name of file is %s \n", dir_entry->d_name);
 
         //char * fileName = dir_entry->d_name;
 
         if (strstr(dir_entry->d_name, "room") == NULL) { //Skip any non-room file
-            printf("Skipping bad files \n");
+            //printf("Skipping bad files \n");
             continue;
         }
 
@@ -101,44 +102,38 @@ void readRooms (char * dirName, struct Room *rooms) {
 
         while ((read = getline(&line, &len, fptr)) != -1)  { //while the end of the file is not reached
             
-            printf("The room num is %d \n", roomNum);
+            //printf("The room num is %d \n", roomNum);
 
             //char * line_ptr = &line;
 
             parseLine(line, lineParts);
 
-            printf("lineparts[1] is %s \n", lineParts[1]);
+            //printf("lineparts[1] is %s \n", lineParts[1]);
             
             if (strcmp(lineParts[0], "CONNECTION") == 0) {
-                printf("found a connection! \n ");
-
-                //long connectNum;
-
-                //if (lineParts[1] != NULL)
-                int connectNum = atoi(lineParts[1]) - 1;
-
-                printf("Adding to connection %d \n", connectNum);
-
-                //rooms[roomNum].connections[connectNum] = malloc(strlen(lineParts[2]));
+                int numOfConns = atoi(lineParts[1]); 
+                    
+                rooms[roomNum].numConns = numOfConns; //Number of connections is the last Connection number in the file: will be in the last parsed connection
+                 
+                int connectNum = numOfConns - 1; //For use in array indexing
 
                 //rooms[roomNum].connections[connectNum] = lineParts[2];
 
                 strncpy(rooms[roomNum].connections[connectNum], lineParts[2], strlen(lineParts[2]-1));
 
                 printf("Setting connection %d to %s \n", connectNum, rooms[roomNum].connections[connectNum]);
+
             }
 
             else if (strcmp(lineParts[1], "TYPE") == 0) {
-                printf("Room type found \n");
                 strcpy(rooms[roomNum].type, lineParts[2]);
                 printf("setting room type as %s \n", rooms[roomNum].type);
             }
             
             else {
-                printf("Room name found \n");
                 //char* roomName = lineParts[2];
 
-                printf("Room name found to be %s \n", lineParts[2]);
+                //printf("Room name found to be %s \n", lineParts[2]);
 
                 strcpy(rooms[roomNum].name, lineParts[2]);
                 printf("setting room name as %s \n", rooms[roomNum].name); 
@@ -146,7 +141,7 @@ void readRooms (char * dirName, struct Room *rooms) {
 
         }
 
-        printf("Within readRooms, a random room conn is %s \n", rooms[1].connections[1]);
+        //printf("Within readRooms, a random room conn is %s \n", rooms[1].connections[1]);
         roomNum++;
     }
 
@@ -156,24 +151,23 @@ void printConnections(struct Room rooms[], int roomPos) {
 
     //int connNum = 0;
     
-    //while(rooms[roomPos].connections[++connNum] != '\0'); 
+    //while(rooms[roomPos].connections[++connNum] != NULL); 
     //int connNum = strlen(&rooms[roomPos].connections);
 
     //int connNum = sizeof(rooms[roomPos].connections) / sizeof(char*); //Determine how many connections there are
 
-    //printf("Found %d connections. \n", connNum);
+    //printf("Finding connections. \n");
 
-    int j = 0;
+    int roomConnNum = rooms[roomPos].numConns;
 
-    while (rooms[roomPos].connections[j] != NULL) {
-        //if (rooms[roomPos].connections[j+2] == NULL) { //If it's the last connection, format correctly. Otherwise, just continue the list
-        printf("%s. \n", rooms[roomPos].connections[j]);
-        /*}
+    for(int j = 0; j < roomConnNum; j++) {
+    //while (rooms[roomPos].connections[j] != NULL) {
+        if (j == (roomConnNum - 1)) { //If it's the last connection, format correctly. Otherwise, just continue the list
+            printf("%s. \n", rooms[roomPos].connections[j]);
+            break;
+        }
         else 
-            printf("%s,", rooms[roomPos].connections[j]);
-        */
-
-        j++;
+            printf("%s, ", rooms[roomPos].connections[j]);
     }    
 }
 
@@ -209,7 +203,7 @@ int goToRoom(struct Room rooms[], char* room, char* charType, int stepNum) {
     int roomPos = findRoom(rooms, room, charType);
 
     printf("CURRENT LOCATION: %s \n", rooms[roomPos].name);
-    printf("POSSIBLE CONNECTIONS:");
+    printf("POSSIBLE CONNECTIONS: ");
 
     printConnections(rooms, roomPos);
 
@@ -238,12 +232,7 @@ int main(){
 
     readRooms(workingDir, rooms); //read all Room files into the rooms array
 
-    //playGame(rooms);
-
-    
-    //free(rooms);
-
-    printf("Freeing connections \n");
+    playGame(rooms);
 
     return 0;
 }
