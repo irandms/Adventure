@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-bool connectionMap[7][7] = {0}; //An array that stores all of the room connections  
 
 //Implementation of the Fisher-Yates shuffle algorithm, taken from https://benpfaff.org/writings/clc/shuffle.html
 void shuffle(char *array[], size_t length)
@@ -25,7 +24,7 @@ void shuffle(char *array[], size_t length)
     }
 }
 
-void initConnections(int num_rows) {
+void initConnections(bool connectionMap[7][7], int num_rows) {
 
     for (int s = 0; s < num_rows; s++) {
         for (int o = 0; o < 3; o++) {
@@ -52,7 +51,7 @@ char* determineType(size_t room_place) {
         return room_type;
 }
 
-void createFiles(char *rooms[],  size_t num_of_rooms) 
+void createFiles(bool connectionMap[7][7], char *rooms[],  size_t num_of_rooms) 
 {
     for (size_t h = 0; h < 7; h++) {
         
@@ -65,12 +64,12 @@ void createFiles(char *rooms[],  size_t num_of_rooms)
 
         fprintf(fPtr, "ROOM NAME: %s \n", rooms[h]);
 
-        int num_of_conn = 1;
+        int numOfConn = 1;
 
         for (int y = 0; y < 7; y++) {
             if (connectionMap[h][y] == true) {
-                fprintf(fPtr, "CONNECTION %d: %s \n", num_of_conn, rooms[y]);
-                num_of_conn++;
+                fprintf(fPtr, "CONNECTION %d: %s \n", numOfConn, rooms[y]);
+                numOfConn++;
             }
         }       
         
@@ -89,6 +88,8 @@ int main()
 
     char pid_str[80];
 
+    bool connectionMap[7][7] = {0}; //An array that stores all of the room connections  
+
     int pid = getpid();
     sprintf(pid_str, "harpekar.rooms.%d", pid);
     mkdir(pid_str, 0700); //Make room directory, with read, write, and execute power
@@ -99,9 +100,9 @@ int main()
     
     shuffle(rooms, 10); 
     
-    initConnections(room_num);
+    initConnections(connectionMap, room_num);
 
-    createFiles(rooms, room_num);
+    createFiles(connectionMap, rooms, room_num);
 
     return 0;
 
