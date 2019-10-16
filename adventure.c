@@ -70,13 +70,13 @@ void parseLine(char * line, char* lineParts[]) {
      //printf("Last linepart is %s \n", lineParts[2]);
 }
 
-Room* findConnection(struct Room *connections[], char* roomToFind) { //Takes in the room name and returns the pointer to the room
+Room* findConnection(struct Room *room, char* roomToFind) { //Takes in the room name and returns the pointer to the room
 
-    for (int i = 0; i < 6; i++) { 
+    for (int i = 0; i < room->numConns; i++) { 
         Room* testRoom;
-        printf("Currently on room %s \n", connections[i]->name);
+        printf("Currently on room %s \n", room->connections[i]->name);
 
-        testRoom = connections[i];
+        testRoom = room->connections[i];
         printf("Current room type is %s \n", testRoom->type);
 
         printf("Testing if %s matches %s \n", testRoom->name, roomToFind);
@@ -261,7 +261,7 @@ int goToRoom(Room* room, int stepNum) {
         return stepNum;
     }
 
-    char destination[10];
+    char destination[25]; //Allow for a long mistyped room
 
     Room* destRoom = NULL;
     while (destRoom == NULL) { //Loop on user input until they give a valid connection name
@@ -275,7 +275,7 @@ int goToRoom(Room* room, int stepNum) {
         scanf("%s", destination);
 
         printf("Want to go to %s \n", destination);
-        destRoom = findConnection(room->connections, destination);
+        destRoom = findConnection(room, destination);
     }
 
     stepNum++;
@@ -295,26 +295,15 @@ void playGame(struct Room rooms[]) {
 }
 
 int main(){ 
-
-    //struct Room strRooms[7]; //Allocate memory for seven Room objects
     struct Room rooms[7];
    
-    /*
-       for (int i = 0; i < 7; i++) {
-      rooms[i] = &(strRooms[i]);
-    }
-    */
-    //roomsPtr[0]->name = malloc(10*sizeof(char));
-
     char * workingDir = "";
 
     struct dirent * dir_entry; 
 
-
     //For file iteration in directory
     FILE *fptr;
     char *line = NULL;
-    //printf("Entering findcurrent \n");
 
     workingDir = findCurrentDirectory(); //Find the most recent directory created by buildrooms.c
    
@@ -330,8 +319,6 @@ int main(){
     playGame(rooms);
 
     closedir(dr);
-
-    //free(rooms);
 
     return 0;
 }
