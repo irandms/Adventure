@@ -7,11 +7,11 @@
 #include <time.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <pthread.h>
 
 typedef struct Room Room;
 
 struct Room {
-    int index;
     char name[10]; 
     char type[15];
     //char connections[6][10];
@@ -91,16 +91,13 @@ Room* findConnection(struct Room *room, char* roomToFind) { //Takes in the room 
     return NULL;
 }
 
-Room* findRoom(struct Room rooms[], char* roomName) {
+Room* findRoom(struct Room rooms[], char* roomName) { //Finds the room in the entire room array (used for initial file parsing)
     
     for (int i = 0; i < 7; i++) { 
         //Room* testRoom;
         printf("Currently on room %s \n", rooms[i].name);
 
         char* testRoom = rooms[i].name;
-        //printf("Current room type is %s \n", testRoom);
-
-        //printf("Testing if %s matches %s \n", testRoom->name, roomToFin);
 
         if (strcmp(testRoom, roomName) == 0) { 
             printf("Found! \n");
@@ -133,10 +130,6 @@ Room* findStartRoom(struct Room rooms[]) {
 
 void initRooms(struct Room rooms[], struct dirent *dir_entry, DIR* dr) {
 
-    //chdir(workingDir); //Move to the most recent directory
-
-    //dr = opendir(".");
-
     int roomInd = 0;
 
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
@@ -153,8 +146,6 @@ void initRooms(struct Room rooms[], struct dirent *dir_entry, DIR* dr) {
             roomInd++;
         }
     }
-    
-    //closedir(dr);
 }
 
 void readRooms (struct Room rooms[]) {
@@ -215,15 +206,11 @@ void readRooms (struct Room rooms[]) {
                 //Find index of parsed room name, then pass pointer to that room object to the Connections array
                 rooms[roomNum].connections[connectNum] = (findRoom(rooms, lineParts[2])); 
 
-                //strncpy(rooms[roomNum].connections[connectNum], lineParts[2], strlen(lineParts[2]-1));
-
                 printf("Setting connection %d to %s \n", connectNum, rooms[roomNum].connections[connectNum]->name);
 
             }
 
         }
-
-        rooms[roomNum].index = roomNum;
 
         printf("Within readRooms, a random room conn is %s \n", rooms[1].connections[1]->name);
         roomNum++;
@@ -232,14 +219,10 @@ void readRooms (struct Room rooms[]) {
 
 void printConnections(struct Room *room) {
 
-    //int connNum = sizeof(rooms[roomPos].connections) / sizeof(char*); //Determine how many connections there are
-
-    //printf("Finding connections. \n");
-
     int roomConnNum = room->numConns;
 
     for(int j = 0; j < roomConnNum; j++) {
-    //while (rooms[roomPos].connections[j] != NULL) {
+        
         if (j == (roomConnNum - 1)) { //If it's the last connection, format correctly. Otherwise, just continue the list
             printf("%s. \n", room->connections[j]->name);
             break;
@@ -251,8 +234,6 @@ void printConnections(struct Room *room) {
 
 
 int goToRoom(Room* room, int stepNum) {
-
-    //int roomPos = findRoom(rooms, room, charType); //Locate origin room
 
     printf("Room type is %s \n", room->type);
 
