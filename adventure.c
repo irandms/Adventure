@@ -70,37 +70,68 @@ void parseLine(char * line, char* lineParts[]) {
      //printf("Last linepart is %s \n", lineParts[2]);
 }
 
-int findRoom(struct Room *rooms[], char* roomToFind, char* charType) { //Takes in the room characteristic type and value and returns its index in the rooms struct
+Room* findConnection(struct Room *connections[], char* roomToFind) { //Takes in the room name and returns the pointer to the room
 
-    printf("Finding a %s that matches %s \n", charType, roomToFind); 
+    for (int i = 0; i < 6; i++) { 
+        Room* testRoom;
+        printf("Currently on room %s \n", connections[i]->name);
 
-    for (int i = 0; i < 7; i++) { 
-        char* testRoom;
-        printf("Currently on room %s \n", rooms[i]->name);
+        testRoom = connections[i];
+        printf("Current room type is %s \n", testRoom->type);
 
-        if (charType == "type") {
-            testRoom = rooms[i]->type;
-            printf("Currently Testing %s \n", testRoom);
-        }
-        else {
-            testRoom = rooms[i]->name;
-            printf("Current room type is %s \n", rooms[i]->type);
-        }
+        printf("Testing if %s matches %s \n", testRoom->name, roomToFind);
 
-        printf("Testing if %s matches %s \n", testRoom, roomToFind);
-
-        if (strcmp(testRoom, roomToFind) == 0) { 
+        if (strcmp(testRoom->name, roomToFind) == 0) { 
             printf("Found! \n");
-            return i;       
+            return testRoom;       
         }
     } 
 
     printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN. \n"); //Fallback if the room provided doesn't exist
-    return -1;
+    return NULL;
 }
 
+Room* findRoom(struct Room rooms[], char* roomName) {
+    
+    for (int i = 0; i < 7; i++) { 
+        //Room* testRoom;
+        printf("Currently on room %s \n", rooms[i].name);
 
-void initRooms(struct Room *rooms[], struct dirent *dir_entry, DIR* dr) {
+        char* testRoom = rooms[i].name;
+        //printf("Current room type is %s \n", testRoom);
+
+        //printf("Testing if %s matches %s \n", testRoom->name, roomToFin);
+
+        if (strcmp(testRoom, roomName) == 0) { 
+            printf("Found! \n");
+            return &(rooms[i]);       
+        }
+    }
+
+    printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN. \n"); //Fallback if the room provided doesn't exist
+} 
+
+Room* findStartRoom(struct Room rooms[]) {
+    
+    for (int i = 0; i < 7; i++) { 
+        //Room* testRoom;
+        printf("Currently on room %s \n", rooms[i].name);
+
+        char* testRoom = rooms[i].type;
+        printf("Current room type is %s \n", testRoom);
+
+        //printf("Testing if %s matches %s \n", testRoom->name, roomToFin);
+
+        if (strcmp(testRoom, "START_ROOM") == 0) { 
+            printf("Found! \n");
+            return &(rooms[i]);       
+        }
+    } 
+
+    printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN. \n"); //Fallback if the room provided doesn't exist
+}
+
+void initRooms(struct Room rooms[], struct dirent *dir_entry, DIR* dr) {
 
     //chdir(workingDir); //Move to the most recent directory
 
@@ -117,7 +148,7 @@ void initRooms(struct Room *rooms[], struct dirent *dir_entry, DIR* dr) {
             char* roomName = strtok(fileName, "_");
             printf("Found Room name is %s \n", roomName);
 
-            strcpy(rooms[roomInd]->name, roomName);
+            strcpy(rooms[roomInd].name, roomName);
 
             roomInd++;
         }
@@ -126,7 +157,7 @@ void initRooms(struct Room *rooms[], struct dirent *dir_entry, DIR* dr) {
     //closedir(dr);
 }
 
-void readRooms (struct Room *rooms[]) {
+void readRooms (struct Room rooms[]) {
     
     //For file iteration in directory
     DIR *dr = opendir(".");
@@ -169,104 +200,110 @@ void readRooms (struct Room *rooms[]) {
             printf("lineparts[1] is %s \n", lineParts[1]);
             
             if (strcmp(lineParts[1], "TYPE") == 0) {
-                printf("The room type is %s \n", lineParts[2]);
-                strcpy(rooms[roomNum]->type, lineParts[2]);
-                printf("setting room type as %s \n", rooms[roomNum]->type);
+                printf("The room type in the file is %s \n", lineParts[2]);
+                strcpy(rooms[roomNum].type, lineParts[2]);
+                printf("setting room type as %s \n", rooms[roomNum].type);
             }
             
             else if (strcmp(lineParts[0], "CONNECTION") == 0) {
                 int numOfConns = atoi(lineParts[1]); 
                     
-                rooms[roomNum]->numConns = numOfConns; //Number of connections is the last Connection number in the file: will be in the last parsed connection
+                rooms[roomNum].numConns = numOfConns; //Number of connections is the last Connection number in the file: will be in the last parsed connection
                  
                 int connectNum = numOfConns - 1; //For use in array indexing
 
                 //Find index of parsed room name, then pass pointer to that room object to the Connections array
-                rooms[roomNum]->connections[connectNum] = (rooms[findRoom(rooms, lineParts[2], "name")]); 
+                rooms[roomNum].connections[connectNum] = (findRoom(rooms, lineParts[2])); 
 
                 //strncpy(rooms[roomNum].connections[connectNum], lineParts[2], strlen(lineParts[2]-1));
 
-                printf("Setting connection %d to %s \n", connectNum, rooms[roomNum]->connections[connectNum]->name);
+                printf("Setting connection %d to %s \n", connectNum, rooms[roomNum].connections[connectNum]->name);
 
             }
 
         }
 
-        rooms[roomNum]->index = roomNum;
+        rooms[roomNum].index = roomNum;
 
-        printf("Within readRooms, a random room conn is %s \n", rooms[1]->connections[1]->name);
+        printf("Within readRooms, a random room conn is %s \n", rooms[1].connections[1]->name);
         roomNum++;
     }
 }
 
-void printConnections(struct Room *rooms[], int roomPos) {
+void printConnections(struct Room *room) {
 
     //int connNum = sizeof(rooms[roomPos].connections) / sizeof(char*); //Determine how many connections there are
 
     //printf("Finding connections. \n");
 
-    int roomConnNum = rooms[roomPos]->numConns;
+    int roomConnNum = room->numConns;
 
     for(int j = 0; j < roomConnNum; j++) {
     //while (rooms[roomPos].connections[j] != NULL) {
         if (j == (roomConnNum - 1)) { //If it's the last connection, format correctly. Otherwise, just continue the list
-            printf("%s. \n", rooms[roomPos]->connections[j]->name);
+            printf("%s. \n", room->connections[j]->name);
             break;
         }
         else 
-            printf("%s, ", rooms[roomPos]->connections[j]->name);
+            printf("%s, ", room->connections[j]->name);
     }    
 }
 
 
-int goToRoom(struct Room *rooms[], char* room, char* charType, int stepNum) {
+int goToRoom(Room* room, int stepNum) {
 
-    int roomPos = findRoom(rooms, room, charType); //Locate origin room
+    //int roomPos = findRoom(rooms, room, charType); //Locate origin room
 
-    if (strcmp(rooms[roomPos]->type, "END_ROOM") == 0) { //If the room is the end room, the game is over
-        printf("End room found!");
+    printf("Room type is %s \n", room->type);
+
+    if (strcmp(room->type, "END_ROOM") == 0) { //If the room is the end room, the game is over
+        printf("End room found! \n");
         return stepNum;
     }
 
     char destination[10];
 
-
-    int destPos = -1;
-    while (destPos == -1) { //Loop on user input until they give a valid connection name
-        printf("CURRENT LOCATION: %s \n", rooms[roomPos]->name);
+    Room* destRoom = NULL;
+    while (destRoom == NULL) { //Loop on user input until they give a valid connection name
+        printf("CURRENT LOCATION: %s \n", room->name);
         printf("POSSIBLE CONNECTIONS: ");
 
-        printConnections(rooms, roomPos);
+        printConnections(room);
 
         printf("WHERE TO? >");
-
 
         scanf("%s", destination);
 
         printf("Want to go to %s \n", destination);
-        destPos = findRoom(rooms[roomPos]->connections, destination, "name");
+        destRoom = findConnection(room->connections, destination);
     }
 
-    int itrStepNum = goToRoom(rooms, destination, "name", (stepNum++));
+    stepNum++;
+
+    int itrStepNum = goToRoom(destRoom, stepNum);
 }
 
-void playGame(struct Room *rooms[]) {
+void playGame(struct Room rooms[]) {
 
-    printf("a random room name is %s \n", rooms[3]->name);
+    printf("a random room name is %s \n", rooms[3].name);
+    
+    Room* startRoom = findStartRoom(rooms); 
 
-    int numSteps = goToRoom(rooms, "START_ROOM", "type", 1);
+    int numSteps = goToRoom(startRoom, 0); //Start at 0 steps
     
     printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS! \n YOU TOOK %d STEPS. \n", numSteps);    
 }
 
 int main(){ 
 
-    struct Room strRooms[7]; //Allocate memory for seven Room objects
-    struct Room *rooms[7];
+    //struct Room strRooms[7]; //Allocate memory for seven Room objects
+    struct Room rooms[7];
    
-    for (int i = 0; i < 7; i++) {
+    /*
+       for (int i = 0; i < 7; i++) {
       rooms[i] = &(strRooms[i]);
     }
+    */
     //roomsPtr[0]->name = malloc(10*sizeof(char));
 
     char * workingDir = "";
@@ -283,7 +320,6 @@ int main(){
    
     chdir(workingDir);
     DIR *dr = opendir(".");
-
 
     printf("Working dir now is %s \n", workingDir);
 
