@@ -9,6 +9,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; //Set up thread mutex
+pthread_t thread; //Set up second thread
+
 typedef struct Room Room;
 
 struct Room {
@@ -18,6 +21,7 @@ struct Room {
     Room * connections[6];
     int numConns;
 };
+
 
 char * findCurrentDirectory() { 
     
@@ -255,8 +259,17 @@ int goToRoom(Room* room, int stepNum) {
 
         scanf("%s", destination);
 
-        printf("Want to go to %s \n", destination);
-        destRoom = findConnection(room, destination);
+        if (strcmp(destination, "time") == 0) {
+            pthread_mutex_unlock(&lock); //Release lock on current thread, allowing writeToFile thread to take over
+
+            pthread_join(thread, NULL);
+
+            pthread_mutex_lock(&lock); //Lock back onto main thread
+        }
+        else {
+            printf("Want to go to %s \n", destination);
+            destRoom = findConnection(room, destination);
+        }
     }
 
     stepNum++;
@@ -275,7 +288,33 @@ void playGame(struct Room rooms[]) {
     printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS! \n YOU TOOK %d STEPS. \n", numSteps);    
 }
 
-int main(){ 
+void * timeToFile(void *vargp) {
+   
+   pthread_mutex_lock(&lock);
+
+   char outstr[200];
+   time_t t;
+   struct tm *tmp;
+
+   t = time(NULL);
+   tmp = localtime(&t);
+
+   printf("Running timetofile \n");
+
+   strftime(outstr, sizeof(outstr), "%I:%M%p, %A, %B %d, %Y", tmp); //Read contents of tmp into outstr in the correct format
+
+   printf("outstr is %s \n", outstr);
+
+   pthread_mutex_unlock(&lock);
+
+   return NULL;
+}
+
+int main(){
+    pthread_create(&thread, NULL, timeToFile, NULL); // Initialize second thread as running the timeToFile function
+
+    pthread_mutex_lock(&lock); //Lock on current process, for now
+
     struct Room rooms[7];
    
     char * workingDir = "";
@@ -291,7 +330,7 @@ int main(){
     chdir(workingDir);
     DIR *dr = opendir(".");
 
-    printf("Working dir now is %s \n", workingDir);
+    //printf("Working dir now is %s \n", workingDir);
 
     initRooms(rooms, dir_entry, dr); //Initialize room array with room names
 
