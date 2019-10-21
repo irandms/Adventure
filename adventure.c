@@ -95,7 +95,7 @@ Room* findConnection(struct Room *room, char* roomToFind) { //Takes in the room 
     return NULL;
 }
 
-Room* findRoom(struct Room rooms[], char* roomName) { //Finds the room in the entire room array (used for initial file parsing)
+Room* findRoom(struct Room rooms[], char* roomName) { //Finds the room with title given in the entire room array (used for initial file parsing)
     
     for (int i = 0; i < 7; i++) { 
         //Room* testRoom;
@@ -236,6 +236,47 @@ void printConnections(struct Room *room) {
     }    
 }
 
+void * timeToFile(void *vargp) {
+   
+   pthread_mutex_lock(&lock);
+
+   char outStr[200];
+   time_t t;
+   struct tm *tmp;
+
+   t = time(NULL);
+   tmp = localtime(&t);
+
+   strftime(outStr, sizeof(outStr), "%I:%M%p, %A, %B %d, %Y", tmp); //Read contents of tmp into outstr in the correct format
+
+   FILE *fPtr = fopen("../currentTime.txt", "w"); //Open a file to write the current time in
+   fprintf(fPtr, "%s \n", outStr); //Write the current time to the appropriate file
+
+   fclose(fPtr);
+
+   pthread_mutex_unlock(&lock);
+
+   return NULL;
+}
+
+void printTime() {
+
+    pthread_mutex_unlock(&lock); //Release lock on current thread, allowing writeToFile thread to take over
+    
+    pthread_join(thread, NULL); //Allow the other thread to run the time determination function
+
+    pthread_mutex_lock(&lock); //Lock back onto main thread
+
+    FILE *fPtr = fopen("../currentTime.txt", "r");
+    
+    char buffer[100];
+    
+    fgets(buffer, 100, fPtr); //Read from the file until a newline character is hit
+
+    printf("%s", buffer);
+
+    fclose(fPtr);
+}
 
 int goToRoom(Room* room, int stepNum) {
 
@@ -260,11 +301,7 @@ int goToRoom(Room* room, int stepNum) {
         scanf("%s", destination);
 
         if (strcmp(destination, "time") == 0) {
-            pthread_mutex_unlock(&lock); //Release lock on current thread, allowing writeToFile thread to take over
-
-            pthread_join(thread, NULL);
-
-            pthread_mutex_lock(&lock); //Lock back onto main thread
+            printTime();
         }
         else {
             printf("Want to go to %s \n", destination);
@@ -288,27 +325,7 @@ void playGame(struct Room rooms[]) {
     printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS! \n YOU TOOK %d STEPS. \n", numSteps);    
 }
 
-void * timeToFile(void *vargp) {
-   
-   pthread_mutex_lock(&lock);
 
-   char outstr[200];
-   time_t t;
-   struct tm *tmp;
-
-   t = time(NULL);
-   tmp = localtime(&t);
-
-   printf("Running timetofile \n");
-
-   strftime(outstr, sizeof(outstr), "%I:%M%p, %A, %B %d, %Y", tmp); //Read contents of tmp into outstr in the correct format
-
-   printf("outstr is %s \n", outstr);
-
-   pthread_mutex_unlock(&lock);
-
-   return NULL;
-}
 
 int main(){
     pthread_create(&thread, NULL, timeToFile, NULL); // Initialize second thread as running the timeToFile function
