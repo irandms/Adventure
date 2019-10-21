@@ -278,7 +278,11 @@ void printTime() {
     fclose(fPtr);
 }
 
-int goToRoom(Room* room, int stepNum) {
+int goToRoom(Room* room, char* victoryPath[], int stepNum) {
+
+    victoryPath[stepNum] = room->name; 
+
+    printf("victorypath at %d is %s", stepNum, victoryPath[stepNum]);
 
     printf("Room type is %s \n", room->type);
 
@@ -310,19 +314,33 @@ int goToRoom(Room* room, int stepNum) {
     }
 
     stepNum++;
+    int itrStepNum = goToRoom(destRoom, victoryPath, stepNum);
+}
 
-    int itrStepNum = goToRoom(destRoom, stepNum);
+void printPath(char* victoryPath[], int numSteps) {
+
+    for (int o = 0; o <= numSteps; o++){ 
+        printf("%s \n", victoryPath[o]);
+    }
 }
 
 void playGame(struct Room rooms[]) {
 
     printf("a random room name is %s \n", rooms[3].name);
-    
+
+    char * victoryPath[10]; 
+
     Room* startRoom = findStartRoom(rooms); 
 
-    int numSteps = goToRoom(startRoom, 0); //Start at 0 steps
+    //victoryPath[0] = (startRoom->name); //Victory path always starts in the start room
+
+    int numSteps = goToRoom(startRoom, victoryPath, 0); //Start at 0 steps
     
-    printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS! \n YOU TOOK %d STEPS. \n", numSteps);    
+    printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS! \n" 
+        "YOU TOOK %d STEPS. \n"       
+        "YOUR PATH TO VICTORY WAS: \n", numSteps); 
+
+    printPath(victoryPath, numSteps);   
 }
 
 
@@ -333,6 +351,7 @@ int main(){
     pthread_mutex_lock(&lock); //Lock on current process, for now
 
     struct Room rooms[7];
+
    
     char * workingDir = "";
 
