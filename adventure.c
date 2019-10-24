@@ -51,7 +51,7 @@ char * findCurrentDirectory() {
 
     closedir(dr);
 
-    printf("Returning %s \n", workingDir);
+    //printf("Returning %s \n", workingDir);
     return workingDir;
 } 
 
@@ -86,7 +86,7 @@ Room* findConnection(struct Room *room, char* roomToFind) { //Takes in the room 
         //printf("Testing if %s matches %s \n", testRoom->name, roomToFind);
 
         if (strcmp(testRoom->name, roomToFind) == 0) { 
-            printf("Found! \n");
+            //printf("Found! \n");
             return testRoom;       
         }
     } 
@@ -104,7 +104,7 @@ Room* findRoom(struct Room rooms[], char* roomName) { //Finds the room with titl
         char* testRoom = rooms[i].name;
 
         if (strcmp(testRoom, roomName) == 0) { 
-            printf("Found! \n");
+            //printf("Found! \n");
             return &(rooms[i]);       
         }
     }
@@ -170,8 +170,6 @@ void readRooms (struct Room rooms[]) {
 
     int roomNum = 0;
 
-    printf("Starting to flesh out rooms array \n");
-        
     while ((dir_entry = readdir(dr)) != NULL) { //iterate through every file in the game directory 
         //printf("name of file is %s \n", dir_entry->d_name);
 
